@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verdie's Family Tree — Version 5.4</title>
+<style>
+:root{
+  --bg:#f8f5f0;--surface:#ffffff;--surface2:#f2e9e2;--text:#2f2925;--muted:#756d66;
+  --line:#d8cec5;--accent:#8a4d38;--accent2:#6f3c2c;--good:#416b47;--warn:#9a6d22;--bad:#a33b3b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+.shell{max-width:1700px;margin:0 auto;padding:16px}
+.hero{border:1px solid var(--line);border-radius:24px;padding:22px;background:linear-gradient(135deg,#fff,#f2e8e1)}
+.heroTop{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+h1{font-size:clamp(29px,5vw,44px);margin:0 0 4px;letter-spacing:-.03em}
+.subtitle{margin:0;color:var(--muted);font-size:16px}
+.version{background:var(--accent);color:white;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700}
+.connRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.dot{width:11px;height:11px;border-radius:50%;background:#aaa}.dot.good{background:#4f8b56}.dot.bad{background:#c44a4a}.dot.warn{background:#c28a34}
+.connDetail{color:var(--muted);font-size:13px}
+.authRow{margin-top:14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.userChip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-size:13px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:128px}
+.stat strong{display:block;font-size:23px}.stat span{font-size:12px;color:var(--muted)}
+.notice{display:none;margin-top:12px;padding:12px 14px;border:1px solid #dfc68f;background:#fff7e5;border-radius:14px;color:#6d5220}
+.notice.show{display:block}
+.notice strong{display:block;margin-bottom:3px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 8px}
+button{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:11px;padding:9px 12px}
+button.primary,button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.danger{color:var(--bad);border-color:#dbb0b0}
+button.small{padding:5px 7px;font-size:12px}
+.searchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.searchbar input{flex:1;min-width:230px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fff}
+.status{min-height:24px;margin:6px 0 8px;color:var(--good);font-size:14px}
+.hidden{display:none!important}
+.treeNav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.treeFrame{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.65);padding:7px}
+.treeScroll{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;overscroll-behavior:contain;scrollbar-gutter:stable both-edges;padding:24px 8px 38px}
+.diagram{width:max-content;min-width:100%;padding:0 54px}
+.diagram ul{padding-top:30px;position:relative;display:flex;justify-content:center;margin:0;padding-left:0}
+.diagram li{list-style:none;text-align:center;position:relative;padding:30px 11px 0}
+.diagram li::before,.diagram li::after{content:"";position:absolute;top:0;right:50%;border-top:2px solid var(--line);width:50%;height:30px}
+.diagram li::after{right:auto;left:50%;border-left:2px solid var(--line)}
+.diagram li:only-child::before,.diagram li:only-child::after{display:none}
+.diagram li:only-child{padding-top:0}
+.diagram li:first-child::before,.diagram li:last-child::after{border:0}
+.diagram li:last-child::before{border-right:2px solid var(--line);border-radius:0 9px 0 0}
+.diagram li:first-child::after{border-radius:9px 0 0 0}
+.diagram ul ul::before{content:"";position:absolute;top:0;left:50%;height:30px;border-left:2px solid var(--line)}
+.node{display:inline-block;vertical-align:top;background:#fff;border:2px solid var(--line);border-radius:16px;min-width:175px;max-width:260px;padding:11px}
+.node.match,.person.match{border-color:var(--accent);box-shadow:0 0 0 3px #dfbbaa}
+.names{display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:wrap}
+.nodeName{font-weight:750}.heart{color:var(--accent);font-size:17px}
+.toggle{border:0;background:transparent;padding:0 3px;color:var(--muted)}
+.nodeActions,.actions{display:flex;gap:6px;flex-wrap:wrap}
+.nodeActions{margin-top:9px;justify-content:center}
+.list{display:flex;flex-direction:column;gap:10px}
+.branch{border-left:2px solid var(--line);margin-left:18px;padding-left:18px;display:flex;flex-direction:column;gap:9px}
+.person{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.personRow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nameButton{border:0;background:transparent;padding:0;font-weight:750;font-size:18px}
+.rel{font-size:13px;color:var(--muted);margin-left:7px}
+.adminBadge{display:inline-block;margin-left:7px;background:var(--surface2);border-radius:999px;padding:3px 7px;font-size:11px;color:var(--accent2)}
+.panel{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface2);padding:15px}
+.panel h2{font-size:17px;margin:0 0 4px}
+.panel p{margin:0 0 10px;color:var(--muted);font-size:13px}
+.panel textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin:18px 0 2px}
+@media(max-width:720px){
+  .shell{padding:10px}.hero{padding:16px;border-radius:18px}
+  .controls button,.treeNav button{flex:1 1 30%}
+  .actions{width:100%}.actions button{flex:1 1 29%}
+  .branch{margin-left:7px;padding-left:10px}
+  .diagram{padding:0 24px}.diagram li{padding-left:6px;padding-right:6px}
+  .node{min-width:145px;max-width:195px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="heroTop">
+      <div>
+        <h1>Verdie's Family Tree</h1>
+        <p class="subtitle">Celebrating Verdie's 99th Birthday — help our shared family tree grow.</p>
+      </div>
+      <span class="version">Version 5.4 • Legacy Edition</span>
+    </div>
+
+    <div class="connRow">
+      <span id="dot" class="dot warn"></span>
+      <strong id="connection">Starting…</strong>
+      <span id="connectionDetail" class="connDetail"></span>
+    </div>
+
+    <div class="authRow">
+      <button id="signIn" class="primary">Administrator Sign-In</button>
+      <button id="signOut" class="hidden">Sign out</button>
+      <span id="userChip" class="userChip hidden"></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><strong id="memberCount">0</strong><span>Family members</span></div>
+      <div class="stat"><strong id="branchCount">0</strong><span>Children / branches</span></div>
+    </div>
+
+    <div id="googleNotice" class="notice">
+      <strong>Administrator Google Sign-In needs to be enabled in Firebase.</strong>
+      In Firebase go to Authentication → Sign-in method → Google → Enable → Save.
+    </div>
+
+    <div id="adminNotice" class="notice">
+      <strong>Admin email still needs to be set.</strong>
+      Guests can add children and spouses without signing in. Edit, Move, Delete, and migration are reserved for the administrator.
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="treeTab" class="active">🌳 Tree View</button>
+    <button id="listTab">📝 List View</button>
+    <button id="expandAll">Expand all</button>
+    <button id="collapseAll">Collapse all</button>
+  </div>
+
+  <div class="searchbar">
+    <input id="search" placeholder="Search for a family member" aria-label="Search family members">
+    <button id="clearSearch">Clear</button>
+  </div>
+  <div id="message" class="status" aria-live="polite"></div>
+
+  <section id="treeArea">
+    <div class="treeNav">
+      <button id="farLeft">← Far Left</button>
+      <button id="centerTree">Center Tree</button>
+      <button id="farRight">Far Right →</button>
+    </div>
+    <div class="treeFrame">
+      <div id="treeScroll" class="treeScroll">
+        <div id="diagram" class="diagram"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="listView" class="list hidden"></section>
+
+  <section class="panel">
+    <h2>Backup</h2>
+    <p>Anyone can create a backup of the names. Sibling order is saved too. Only the administrator can replace the shared tree.</p>
+    <div class="controls">
+      <button id="makeBackup">Create backup text</button>
+      <button id="downloadBackup">Download backup</button>
+      <button id="uploadLocal">Admin: upload my old Version 3/4 tree</button>
+    </div>
+    <textarea id="backupText" placeholder="Backup data will appear here"></textarea>
+  </section>
+
+  <div class="footer">Verdie's Family Tree • Version 5.4 • Names only</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, writeBatch, getDocs
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCtXVQJNG7iA2eNzZzl9_JlvUw5wGYb9J8",
+  authDomain: "verdie-family-tree.firebaseapp.com",
+  projectId: "verdie-family-tree",
+  storageBucket: "verdie-family-tree.firebasestorage.app",
+  messagingSenderId: "102762014542",
+  appId: "1:102762014542:web:06d2f9946781be9514a01f",
+  measurementId: "G-1G95DN3K04"
+};
+
+/* IMPORTANT:
+   Send ChatGPT the Google email address you want to use as administrator.
+   It can then place that address here for you.
+*/
+const ADMIN_EMAILS = [
+  "teaganparrish21@gmail.com"
+];
+
+const COLLECTION = "verdieFamilyTreePeople";
+const LOCAL_KEY = "verdie-family-tree-v1";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
+
+let people = [];
+let expanded = new Map();
+let currentUser = null;
+let liveStarted = false;
+let unsubscribeTree = null;
+
+const $ = id => document.getElementById(id);
+
+function norm(p){
+  return {
+    id:String(p.id),
+    name:String(p.name || "Unnamed"),
+    parentId:p.parentId===null || p.parentId===undefined ? null : String(p.parentId),
+    spouseOf:p.spouseOf===null || p.spouseOf===undefined ? null : String(p.spouseOf),
+    order:Number.isFinite(Number(p.order)) ? Number(p.order) : 0
+  };
+}
+function isAdmin(){
+  const email=(currentUser?.email || "").toLowerCase();
+  return ADMIN_EMAILS.some(x=>x.toLowerCase()===email);
+}
+function adminConfigured(){
+  return !ADMIN_EMAILS.some(x=>x.startsWith("REPLACE_"));
+}
+function person(id){return people.find(p=>p.id===String(id))}
+function children(id){
+  return people
+    .filter(p=>p.parentId===String(id))
+    .sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name));
+}
+function spouses(id){
+  return people
+    .filter(p=>p.spouseOf===String(id))
+    .sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name));
+}
+function familyParent(t){return t.spouseOf!==null ? t.spouseOf : t.id}
+function isExpanded(id){return expanded.get(String(id))!==false}
+function uid(){return crypto.randomUUID ? crypto.randomUUID() : Date.now()+"-"+Math.random().toString(36).slice(2)}
+function nextOrderFor(parentId,spouseOf){
+  const siblings = people.filter(p =>
+    (parentId!==null && p.parentId===String(parentId)) ||
+    (spouseOf!==null && p.spouseOf===String(spouseOf))
+  );
+  if(!siblings.length)return 1;
+  return Math.max(...siblings.map(p=>Number(p.order)||0))+1;
+}
+function setMessage(t){$("message").textContent=t}
+function setConnection(mode,title,detail=""){
+  $("dot").className="dot "+mode;
+  $("connection").textContent=title;
+  $("connectionDetail").textContent=detail;
+}
+function updateStats(){
+  $("memberCount").textContent=people.length;
+  $("branchCount").textContent=people.filter(p=>p.parentId!==null).length;
+}
+function isMatch(p){
+  const q=$("search").value.trim().toLowerCase();
+  return !!q && p.name.toLowerCase().includes(q);
+}
+function requireAdmin(){
+  if(currentUser && isAdmin())return true;
+  if(!currentUser){
+    setMessage("Administrator sign-in is required for Edit, Move, Delete, and migration.");
+  }else{
+    setMessage("That action is reserved for the family-tree administrator.");
+  }
+  return false;
+}
+function errorMessage(e){
+  console.error(e);
+  const c=e?.code || "";
+  if(c.includes("auth/operation-not-allowed")){
+    $("googleNotice").classList.add("show");
+    return "Google Sign-In is not enabled yet in Firebase.";
+  }
+  if(c.includes("auth/unauthorized-domain")) return "This GitHub Pages domain is not authorized in Firebase Authentication.";
+  if(c.includes("permission-denied")) return "Firestore blocked this action. Check your Firestore Rules.";
+  if(c.includes("popup-closed")) return "Google sign-in was closed before finishing.";
+  return "Firebase error: "+(c || e?.message || "unknown error");
+}
+function localOldTree(){
+  try{
+    const v=JSON.parse(localStorage.getItem(LOCAL_KEY)||"null");
+    if(v && Array.isArray(v.people)){
+      const normalized=v.people.map(norm);
+      const grouped=new Map();
+
+      normalized.forEach((p,index)=>{
+        const key=p.parentId!==null ? `c:${p.parentId}` : (p.spouseOf!==null ? `s:${p.spouseOf}` : "root");
+        if(!grouped.has(key))grouped.set(key,[]);
+        grouped.get(key).push({p,index});
+      });
+
+      grouped.forEach(items=>{
+        items
+          .sort((a,b)=>a.index-b.index)
+          .forEach((item,i)=>{
+            if(!item.p.order || item.p.order===0)item.p.order=i+1;
+          });
+      });
+
+      return normalized;
+    }
+  }catch(e){}
+  return [];
+}
+async function addPerson(targetId,type){
+  const target=person(targetId);if(!target)return;
+  const label=type==="child"?"Child":"Spouse";
+  const name=prompt(`${label} of ${target.name}\nEnter name:`);
+  if(!name || !name.trim())return;
+
+  const parentId = type==="child" ? familyParent(target) : null;
+  const spouseOf = type==="spouse" ? target.id : null;
+  const p={
+    id:uid(), name:name.trim(),
+    parentId,
+    spouseOf,
+    order:nextOrderFor(parentId,spouseOf)
+  };
+  try{
+    await setDoc(doc(db,COLLECTION,p.id),p);
+    expanded.set(String(p.parentId || target.id),true);
+    setMessage(`${p.name} was added to the shared family tree.`);
+  }catch(e){setMessage(errorMessage(e))}
+}
+async function editPerson(id){
+  if(!requireAdmin())return;
+  const p=person(id);if(!p)return;
+  const n=prompt("Edit name:",p.name);
+  if(!n || !n.trim() || n.trim()===p.name)return;
+  try{await updateDoc(doc(db,COLLECTION,p.id),{name:n.trim()});setMessage(`${p.name} was updated.`)}
+  catch(e){setMessage(errorMessage(e))}
+}
+function descendantIds(id,set=new Set()){
+  children(id).forEach(c=>{
+    if(!set.has(c.id)){set.add(c.id);descendantIds(c.id,set)}
+    spouses(c.id).forEach(s=>set.add(s.id))
+  });
+  spouses(id).forEach(s=>set.add(s.id));
+  return set;
+}
+async function deletePerson(id){
+  if(!requireAdmin())return;
+  const p=person(id);if(!p)return;
+  if(p.parentId===null && p.spouseOf===null){alert("The starting person cannot be deleted. Edit the name instead.");return}
+
+  let ids=[p.id];
+  if(children(p.id).length || spouses(p.id).length){
+    const choice=(prompt(
+      `Delete ${p.name}?\n\nType ONLY to delete just this person and keep children.\nType BRANCH to delete this person and everyone below.\nType CANCEL to stop.`,
+      "CANCEL"
+    )||"").trim().toUpperCase();
+
+    if(!choice || choice==="CANCEL")return;
+
+    if(choice==="BRANCH"){
+      ids=[...descendantIds(p.id),p.id];
+    } else if(choice==="ONLY"){
+      try{
+        const batch=writeBatch(db);
+        children(p.id).forEach(c=>batch.update(doc(db,COLLECTION,c.id),{parentId:p.parentId}));
+        spouses(p.id).forEach(s=>batch.delete(doc(db,COLLECTION,s.id)));
+        batch.delete(doc(db,COLLECTION,p.id));
+        await batch.commit();
+        setMessage(`${p.name} was deleted; children were kept.`);
+      }catch(e){setMessage(errorMessage(e))}
+      return;
+    } else {return}
+  } else if(!confirm(`Delete ${p.name}?`))return;
+
+  try{
+    const b=writeBatch(db);
+    ids.forEach(x=>b.delete(doc(db,COLLECTION,x)));
+    await b.commit();
+    setMessage(`${p.name}${ids.length>1?" and that branch":""} deleted.`);
+  }catch(e){setMessage(errorMessage(e))}
+}
+async function movePerson(id){
+  if(!requireAdmin())return;
+  const p=person(id);if(!p)return;
+  if(p.parentId===null && p.spouseOf===null){alert("The starting person cannot be moved.");return}
+  const type=p.spouseOf!==null?"spouse":"child";
+  const answer=prompt(type==="spouse"
+    ?`Attach ${p.name} as spouse of whom?\nEnter the exact name:`
+    :`Move ${p.name} under which parent?\nEnter the exact name:`);
+  if(!answer || !answer.trim())return;
+  const found=people.filter(x=>x.id!==p.id && x.name.toLowerCase()===answer.trim().toLowerCase());
+  if(found.length!==1){alert(found.length?"More than one exact match was found. Temporarily make one name unique.":"No exact matching name was found.");return}
+  const t=found[0];
+  if(type==="child" && descendantIds(p.id).has(t.id)){alert("A person cannot be moved underneath their own descendant.");return}
+  try{
+    const patch = type==="spouse"
+      ? {spouseOf:t.id,parentId:null,order:nextOrderFor(null,t.id)}
+      : {parentId:t.id,spouseOf:null,order:nextOrderFor(t.id,null)};
+    await updateDoc(doc(db,COLLECTION,p.id),patch);
+    setMessage(`${p.name} was moved to ${t.name}.`);
+  }catch(e){setMessage(errorMessage(e))}
+}
+
+async function moveSiblingOrder(id,direction){
+  if(!requireAdmin())return;
+  const p=person(id);if(!p)return;
+
+  const siblings = p.parentId!==null
+    ? children(p.parentId)
+    : (p.spouseOf!==null ? spouses(p.spouseOf) : []);
+
+  const index=siblings.findIndex(x=>x.id===p.id);
+  const targetIndex=index+direction;
+  if(index<0 || targetIndex<0 || targetIndex>=siblings.length)return;
+
+  const other=siblings[targetIndex];
+
+  try{
+    const batch=writeBatch(db);
+
+    // Older Version 5.3 records may not have an order yet.
+    // Normalize the whole sibling group first, then swap the two positions.
+    const normalizedOrders=new Map();
+    siblings.forEach((s,i)=>normalizedOrders.set(s.id,i+1));
+
+    siblings.forEach(s=>{
+      let newOrder=normalizedOrders.get(s.id);
+      if(s.id===p.id)newOrder=normalizedOrders.get(other.id);
+      else if(s.id===other.id)newOrder=normalizedOrders.get(p.id);
+      batch.update(doc(db,COLLECTION,s.id),{order:newOrder});
+    });
+
+    await batch.commit();
+    setMessage(`${p.name} moved ${direction<0?"up":"down"}.`);
+  }catch(e){
+    setMessage(errorMessage(e));
+  }
+}
+
+function actionButtons(p,compact=false){
+  const box=document.createElement("div");
+  box.className=compact?"nodeActions":"actions";
+
+  const defs=[
+    ["+ Child",()=>addPerson(p.id,"child"),false,""],
+    ["+ Spouse",()=>addPerson(p.id,"spouse"),false,""],
+    ["↑ Up",()=>moveSiblingOrder(p.id,-1),true,""],
+    ["↓ Down",()=>moveSiblingOrder(p.id,1),true,""],
+    ["✎ Edit",()=>editPerson(p.id),true,""],
+    ["↔ Move",()=>movePerson(p.id),true,""],
+    ["🗑 Delete",()=>deletePerson(p.id),true,"danger"]
+  ];
+
+  defs.forEach(([text,fn,adminOnly,cls])=>{
+    if(adminOnly && !isAdmin())return;
+    const b=document.createElement("button");
+    b.textContent=text;b.className=(compact?"small ":"")+(cls||"");
+    b.addEventListener("click",fn);box.appendChild(b);
+  });
+  return box;
+}
+function listCard(p,rel=""){
+  const card=document.createElement("div");card.className="person"+(isMatch(p)?" match":"");
+  const row=document.createElement("div");row.className="personRow";
+  const left=document.createElement("div");
+  const has=children(p.id).length || spouses(p.id).length;
+  const name=document.createElement("button");name.className="nameButton";
+  name.textContent=(has?(isExpanded(p.id)?"▾ ":"▸ "):"")+p.name;
+  name.addEventListener("click",()=>{expanded.set(p.id,!isExpanded(p.id));render()});
+  left.appendChild(name);
+  if(rel){const r=document.createElement("span");r.className="rel";r.textContent=rel;left.appendChild(r)}
+  row.append(left,actionButtons(p,false));card.appendChild(row);return card;
+}
+function listBranch(p,depth=0){
+  const wrap=document.createElement("div");if(depth)wrap.className="branch";
+  wrap.appendChild(listCard(p,depth?"":"Family starting point"));
+  if(isExpanded(p.id)){
+    spouses(p.id).forEach(s=>{const w=document.createElement("div");w.className="branch";w.appendChild(listCard(s,`spouse of ${p.name}`));wrap.appendChild(w)});
+    children(p.id).forEach(c=>wrap.appendChild(listBranch(c,depth+1)));
+  }
+  return wrap;
+}
+function treeNode(p){
+  const li=document.createElement("li"), node=document.createElement("div");
+  node.className="node"+(isMatch(p)?" match":"");
+  const names=document.createElement("div");names.className="names";
+  const has=children(p.id).length || spouses(p.id).length;
+  if(has){
+    const t=document.createElement("button");t.className="toggle";t.textContent=isExpanded(p.id)?"▼":"▶";
+    t.addEventListener("click",()=>{expanded.set(p.id,!isExpanded(p.id));render()});names.appendChild(t);
+  }
+  const n=document.createElement("span");n.className="nodeName";n.textContent=p.name;names.appendChild(n);
+  spouses(p.id).forEach(s=>{
+    const h=document.createElement("span");h.className="heart";h.textContent="♥";
+    const sn=document.createElement("span");sn.className="nodeName";sn.textContent=s.name;
+    names.append(h,sn);
+  });
+  node.append(names,actionButtons(p,true));li.appendChild(node);
+  if(isExpanded(p.id) && children(p.id).length){
+    const ul=document.createElement("ul");children(p.id).forEach(c=>ul.appendChild(treeNode(c)));li.appendChild(ul);
+  }
+  return li;
+}
+function revealMatches(){
+  const q=$("search").value.trim().toLowerCase();if(!q)return;
+  people.filter(p=>p.name.toLowerCase().includes(q)).forEach(p=>{
+    let cur=p,guard=0;
+    while(cur && guard++<100){
+      if(cur.parentId!==null){
+        const par=person(cur.parentId);
+        if(par){expanded.set(par.id,true);cur=par;continue}
+      }
+      if(cur.spouseOf!==null){const s=person(cur.spouseOf);if(s)expanded.set(s.id,true)}
+      break;
+    }
+  });
+}
+function render(){
+  revealMatches();
+  people.forEach(p=>{if(!expanded.has(p.id))expanded.set(p.id,true)});
+  updateStats();
+
+  const roots=people.filter(p=>p.parentId===null && p.spouseOf===null);
+
+  $("listView").innerHTML="";
+  roots.forEach(r=>$("listView").appendChild(listBranch(r)));
+
+  $("diagram").innerHTML="";
+  const ul=document.createElement("ul");roots.forEach(r=>ul.appendChild(treeNode(r)));$("diagram").appendChild(ul);
+
+  $("adminNotice").classList.toggle("show",!adminConfigured());
+}
+function centerTree(smooth=true){
+  const e=$("treeScroll");
+  e.scrollTo({left:Math.max(0,(e.scrollWidth-e.clientWidth)/2),behavior:smooth?"smooth":"auto"});
+}
+function switchView(v){
+  const tree=v==="tree";
+  $("treeArea").classList.toggle("hidden",!tree);
+  $("listView").classList.toggle("hidden",tree);
+  $("treeTab").classList.toggle("active",tree);
+  $("listTab").classList.toggle("active",!tree);
+  if(tree)setTimeout(()=>centerTree(false),35);
+}
+function updateAuthUI(){
+  const signed=!!currentUser;
+  $("signIn").classList.toggle("hidden",signed);
+  $("signOut").classList.toggle("hidden",!signed);
+  $("userChip").classList.toggle("hidden",!signed);
+  if(signed){
+    $("userChip").textContent=(isAdmin()?"Administrator • ":"Signed in • ")+(currentUser.email||currentUser.displayName||"Google user");
+  }
+  render();
+}
+function startLive(){
+  if(liveStarted)return;
+  liveStarted=true;
+  setConnection("warn","Connecting to shared family tree…","");
+  unsubscribeTree = onSnapshot(collection(db,COLLECTION),async snap=>{
+    people=snap.docs.map(d=>norm(d.data()));
+
+    if(!people.length){
+      try{
+        await setDoc(doc(db,COLLECTION,"1"),{id:"1",name:"Verdie",parentId:null,spouseOf:null,order:1});
+        return;
+      }catch(e){
+        setMessage(errorMessage(e));
+      }
+    }
+
+    render();
+    setConnection("good","Shared family tree connected","Everyone sees the same tree.");
+  },e=>{
+    liveStarted=false;
+    setConnection("bad","Shared connection error",e?.code||"");
+    setMessage(errorMessage(e));
+  });
+}
+
+$("signIn").addEventListener("click",async()=>{
+  try{
+    $("googleNotice").classList.remove("show");
+    await signInWithPopup(auth,provider);
+  }catch(e){setMessage(errorMessage(e))}
+});
+$("signOut").addEventListener("click",async()=>{await signOut(auth);setMessage("Signed out.")});
+
+onAuthStateChanged(auth,u=>{
+  currentUser=u;
+  updateAuthUI();
+
+  if(u && isAdmin()){
+    setMessage("Administrator mode is active.");
+  }else if(u){
+    setMessage("Signed in, but this Google account is not the administrator.");
+  }else{
+    setMessage("Guest mode: you can view the tree and add children or spouses without signing in.");
+  }
+});
+
+$("treeTab").addEventListener("click",()=>switchView("tree"));
+$("listTab").addEventListener("click",()=>switchView("list"));
+$("search").addEventListener("input",render);
+$("clearSearch").addEventListener("click",()=>{$("search").value="";render()});
+$("expandAll").addEventListener("click",()=>{people.forEach(p=>expanded.set(p.id,true));render()});
+$("collapseAll").addEventListener("click",()=>{
+  people.forEach(p=>expanded.set(p.id,false));
+  people.filter(p=>p.parentId===null&&p.spouseOf===null).forEach(p=>expanded.set(p.id,true));
+  render();
+});
+$("farLeft").addEventListener("click",()=>$("treeScroll").scrollTo({left:0,behavior:"smooth"}));
+$("centerTree").addEventListener("click",()=>centerTree(true));
+$("farRight").addEventListener("click",()=>{const e=$("treeScroll");e.scrollTo({left:e.scrollWidth,behavior:"smooth"})});
+
+$("makeBackup").addEventListener("click",()=>{
+  $("backupText").value=JSON.stringify({version:5,people},null,2);
+  setMessage("Backup text created.");
+});
+$("downloadBackup").addEventListener("click",()=>{
+  const text=JSON.stringify({version:5,people},null,2);
+  $("backupText").value=text;
+  const blob=new Blob([text],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="verdie-family-tree-v5-backup.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  setMessage("Backup downloaded.");
+});
+$("uploadLocal").addEventListener("click",async()=>{
+  if(!requireAdmin())return;
+  const old=localOldTree();
+  if(!old.length){alert("No earlier saved family tree was found in this browser.");return}
+  if(!confirm(`Replace the SHARED tree with the ${old.length} names saved in this browser?\n\nOnly do this from the device that has your most complete old tree.`))return;
+  try{
+    const snap=await getDocs(collection(db,COLLECTION));
+    const batch=writeBatch(db);
+    snap.docs.forEach(d=>batch.delete(d.ref));
+    old.forEach(p=>batch.set(doc(db,COLLECTION,p.id),p));
+    await batch.commit();
+    setMessage("Your older family tree was uploaded to the shared tree.");
+  }catch(e){setMessage(errorMessage(e))}
+});
+
+startLive();
+switchView("tree");
+setConnection("warn","Connecting to shared family tree…","");
+</script>
+</body>
+</html>
