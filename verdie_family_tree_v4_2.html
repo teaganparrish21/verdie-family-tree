@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verdie's Shared Family Tree - Version 4.2</title>
+<style>
+:root{--bg:#f7f3ed;--card:#fff;--text:#302a25;--muted:#746c63;--line:#d8cec4;--accent:#7b4b3a;--soft:#efe3db;--good:#486642;--bad:#9b2c2c}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea{font:inherit} button{cursor:pointer}
+.wrap{max-width:1600px;margin:auto;padding:16px}
+.hero{background:linear-gradient(135deg,#fff,#f0e4dc);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:14px}
+.heroRow{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+h1{margin:0 0 5px;font-size:32px}.sub{margin:0;color:var(--muted)}
+.badge{background:var(--accent);color:#fff;padding:7px 11px;border-radius:999px;font-size:13px}
+.connection{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:50%;background:#aaa;display:inline-block}
+.dot.online{background:#4d8b52}.dot.local{background:#c28d35}.dot.error{background:#b74848}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 13px;min-width:125px}
+.stat strong{display:block;font-size:21px}.stat span{font-size:12px;color:var(--muted)}
+.setup{display:none;background:#fff7e8;border:1px solid #dfc48e;border-radius:14px;padding:14px;margin:12px 0}
+.setup.show{display:block}.setup code{font-size:12px}
+.tabs,.toolbar,.treeNav,.actions,.nodeActions{display:flex;gap:7px;flex-wrap:wrap}
+.tabs{margin:12px 0}.toolbar{margin-bottom:8px}.treeNav{margin:6px 0 8px}
+button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;color:var(--text)}
+button.active,button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.danger{color:var(--bad);border-color:#d9abab}
+button:disabled{opacity:.45;cursor:not-allowed}
+.toolbar input{flex:1;min-width:220px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px}
+.status{min-height:22px;font-size:14px;color:var(--good);margin:4px 0 8px}
+.hidden{display:none!important}
+.treeShell{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.5);padding:7px}
+.treeScroll{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;padding:20px 8px 32px;scrollbar-gutter:stable both-edges}
+.diagram{width:max-content;min-width:100%;padding:0 44px}
+.diagram ul{padding-top:26px;position:relative;display:flex;justify-content:center;margin:0;padding-left:0}
+.diagram li{list-style:none;text-align:center;position:relative;padding:26px 10px 0}
+.diagram li::before,.diagram li::after{content:'';position:absolute;top:0;right:50%;border-top:2px solid var(--line);width:50%;height:26px}
+.diagram li::after{right:auto;left:50%;border-left:2px solid var(--line)}
+.diagram li:only-child::before,.diagram li:only-child::after{display:none}.diagram li:only-child{padding-top:0}
+.diagram li:first-child::before,.diagram li:last-child::after{border:0}
+.diagram li:last-child::before{border-right:2px solid var(--line);border-radius:0 8px 0 0}
+.diagram li:first-child::after{border-radius:8px 0 0 0}
+.diagram ul ul::before{content:'';position:absolute;top:0;left:50%;height:26px;border-left:2px solid var(--line)}
+.node{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:15px;padding:10px;min-width:165px;max-width:250px}
+.node.match,.person.match{outline:3px solid #d9b8a8;border-color:var(--accent)}
+.couple{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}.nodeName{font-weight:700}.heart{color:var(--accent)}
+.toggle{border:0;background:transparent;padding:0 3px;color:var(--muted)}
+.nodeActions{justify-content:center;margin-top:8px}.nodeActions button{font-size:12px;padding:5px 7px}
+.list{display:flex;flex-direction:column;gap:10px}.branch{border-left:2px solid var(--line);margin-left:16px;padding-left:16px;display:flex;flex-direction:column;gap:9px}
+.person{background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 13px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.nameBtn{border:0;background:transparent;padding:0;font-weight:700;font-size:18px}.rel{font-size:13px;color:var(--muted);margin-left:7px}
+.backup{margin-top:18px;background:var(--soft);border:1px solid var(--line);border-radius:15px;padding:14px}
+.backup textarea{width:100%;min-height:120px;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:9px;font-family:monospace;font-size:12px;background:#fff}
+.note,.footer{font-size:13px;color:var(--muted)}.footer{text-align:center;margin:16px 0 2px}
+@media(max-width:700px){.wrap{padding:10px}h1{font-size:27px}.hero{padding:15px}.actions{width:100%}.actions button{flex:1 1 29%}.toolbar>button,.treeNav>button{flex:1 1 30%}.branch{margin-left:7px;padding-left:9px}.diagram{padding:0 22px}.node{min-width:145px;max-width:190px}.diagram li{padding-left:6px;padding-right:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+  <div class="heroRow">
+    <div>
+      <h1>Verdie's Family Tree</h1>
+      <p class="sub">Find your family, add missing names, and help our shared tree grow.</p>
+    </div>
+    <span class="badge">Version 4.2 • Shared</span>
+  </div>
+  <div class="connection"><span id="connDot" class="dot"></span><strong id="connText">Connecting…</strong><span id="connDetail" class="note"></span></div>
+  <div class="stats">
+    <div class="stat"><strong id="memberCount">0</strong><span>Family members</span></div>
+    <div class="stat"><strong id="childCount">0</strong><span>Children / branches</span></div>
+  </div>
+</section>
+
+<section id="setupBox" class="setup">
+  <strong>Firebase setup still needed</strong>
+  <div class="note" style="margin-top:5px">This file is ready for shared saving, but your Firebase configuration has not been pasted into the code yet. Until then, it works in local-only mode.</div>
+</section>
+
+<div class="tabs">
+  <button id="treeTab" class="active">🌳 Tree View</button>
+  <button id="listTab">📝 List View</button>
+</div>
+
+<div class="toolbar">
+  <input id="search" placeholder="Search for a family member" aria-label="Search family">
+  <button id="expandAll">Expand all</button>
+  <button id="collapseAll">Collapse all</button>
+  <button id="undo" disabled>↶ Undo my last change</button>
+</div>
+<div id="message" class="status" aria-live="polite"></div>
+
+<div id="treeArea">
+  <div class="treeNav">
+    <button id="left">← Far Left</button><button id="center">Center Tree</button><button id="right">Far Right →</button>
+  </div>
+  <div class="treeShell"><div id="treeScroll" class="treeScroll"><div id="diagram" class="diagram"></div></div></div>
+</div>
+<div id="listView" class="list hidden"></div>
+
+<section class="backup">
+  <strong>Backup & migration</strong>
+  <p class="note">Version 4 keeps a local backup on each device too. Once Firebase is connected, use “Upload this device's saved tree” once to put your existing Version 3 names into the shared tree.</p>
+  <div class="toolbar">
+    <button id="uploadLocal" class="primary">Upload this device's saved tree</button>
+    <button id="makeBackup">Create backup text</button>
+    <button id="downloadBackup">Download backup</button>
+    <button id="restoreLocal">Restore backup locally</button>
+  </div>
+  <textarea id="backup" placeholder="Backup text appears here"></textarea>
+</section>
+<div class="footer">Verdie's Family Tree • Version 4.2</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc,
+  writeBatch, getDocs
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+/* =========================================================
+   FIREBASE CONFIGURATION
+   Replace the placeholder values below with YOUR Firebase
+   web app configuration. I can do this for you if you send
+   me the firebaseConfig block Firebase gives you.
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCtXVQJNG7iA2eNzZzl9_JlvUw5wGYb9J8",
+  authDomain: "verdie-family-tree.firebaseapp.com",
+  projectId: "verdie-family-tree",
+  storageBucket: "verdie-family-tree.firebasestorage.app",
+  messagingSenderId: "102762014542",
+  appId: "1:102762014542:web:06d2f9946781be9514a01f",
+  measurementId: "G-1G95DN3K04"
+}
+
+const COLLECTION_NAME = "verdieFamilyTreePeople";
+const LOCAL_KEY = "verdie-family-tree-v1";
+
+let db=null, shared=false, people=[], expanded=new Map(), undoAction=null;
+const $=id=>document.getElementById(id);
+
+function firebaseConfigured(){
+  return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE_")
+    && firebaseConfig.projectId && !firebaseConfig.projectId.startsWith("PASTE_");
+}
+function localState(){
+  try{
+    const x=JSON.parse(localStorage.getItem(LOCAL_KEY)||"null");
+    if(x&&Array.isArray(x.people))return x;
+  }catch(e){}
+  return {nextId:2,people:[{id:1,name:"Verdie",parentId:null,spouseOf:null,expanded:true}]};
+}
+function normalize(p){
+  return {
+    id:String(p.id),
+    name:String(p.name||"Unnamed"),
+    parentId:p.parentId===null||p.parentId===undefined?null:String(p.parentId),
+    spouseOf:p.spouseOf===null||p.spouseOf===undefined?null:String(p.spouseOf)
+  };
+}
+function saveLocalCache(){
+  const ids=people.map(p=>p.id);
+  const numeric=ids.every(x=>/^\d+$/.test(x));
+  const nextId=numeric ? Math.max(1,...ids.map(Number))+1 : Date.now();
+  localStorage.setItem(LOCAL_KEY,JSON.stringify({nextId,people:people.map(p=>({...p,expanded:expanded.get(p.id)!==false}))}));
+}
+function newId(){return (crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2))}
+function person(id){return people.find(p=>p.id===String(id))}
+function children(id){return people.filter(p=>p.parentId===String(id))}
+function spouses(id){return people.filter(p=>p.spouseOf===String(id))}
+function isExpanded(id){return expanded.get(String(id))!==false}
+function setMsg(t){$("message").textContent=t}
+function relationTargetForChild(t){return t.spouseOf!==null ? t.spouseOf : t.id}
+function matches(p){const q=$("search").value.trim().toLowerCase();return q&&p.name.toLowerCase().includes(q)}
+function updateStats(){$("memberCount").textContent=people.length;$("childCount").textContent=people.filter(p=>p.parentId!==null).length}
+function setConnection(mode,text,detail=""){
+  $("connDot").className="dot "+mode;$("connText").textContent=text;$("connDetail").textContent=detail;
+}
+function updateUndo(){$("undo").disabled=!undoAction}
+
+async function writePerson(p){
+  if(shared) await setDoc(doc(db,COLLECTION_NAME,String(p.id)),normalize(p));
+  else { const i=people.findIndex(x=>x.id===p.id); if(i<0)people.push(normalize(p)); else people[i]=normalize(p); saveLocalCache(); render(); }
+}
+async function patchPerson(id,patch){
+  if(shared) await updateDoc(doc(db,COLLECTION_NAME,String(id)),patch);
+  else {Object.assign(person(id),patch);saveLocalCache();render()}
+}
+async function removeIds(ids){
+  const set=new Set(ids.map(String));
+  if(shared){
+    const batch=writeBatch(db); ids.forEach(id=>batch.delete(doc(db,COLLECTION_NAME,String(id)))); await batch.commit();
+  }else{people=people.filter(p=>!set.has(p.id));saveLocalCache();render()}
+}
+async function restorePeople(items){
+  if(shared){const batch=writeBatch(db);items.forEach(p=>batch.set(doc(db,COLLECTION_NAME,String(p.id)),normalize(p)));await batch.commit()}
+  else{items.forEach(p=>{const i=people.findIndex(x=>x.id===String(p.id));if(i<0)people.push(normalize(p));else people[i]=normalize(p)});saveLocalCache();render()}
+}
+
+async function addPerson(targetId,type){
+  const t=person(targetId); if(!t)return;
+  const name=prompt(`${type==="child"?"Child":"Spouse"} of ${t.name}\nEnter name:`); if(!name||!name.trim())return;
+  const id=newId(), familyParentId=type==="child"?relationTargetForChild(t):null;
+  const p={id,name:name.trim(),parentId:familyParentId,spouseOf:type==="spouse"?t.id:null};
+  try{
+    await writePerson(p); expanded.set(String(familyParentId||t.id),true);
+    undoAction=async()=>{await removeIds([id]);setMsg(`Undid adding ${p.name}.`);undoAction=null;updateUndo()};
+    updateUndo(); setMsg(`${p.name} was added.`);
+  }catch(e){handleError(e)}
+}
+async function editPerson(id){
+  const p=person(id);if(!p)return;const v=prompt("Edit name:",p.name);if(!v||!v.trim()||v.trim()===p.name)return;
+  const old=p.name,now=v.trim();
+  try{
+    await patchPerson(id,{name:now});
+    undoAction=async()=>{await patchPerson(id,{name:old});setMsg(`Restored ${old}.`);undoAction=null;updateUndo()};
+    updateUndo();setMsg(`${old} was changed to ${now}.`);
+  }catch(e){handleError(e)}
+}
+function descendants(id,set=new Set()){
+  children(id).forEach(ch=>{if(!set.has(ch.id)){set.add(ch.id);descendants(ch.id,set)};spouses(ch.id).forEach(s=>set.add(s.id))});
+  spouses(id).forEach(s=>set.add(s.id));return set;
+}
+async function deletePerson(id){
+  const p=person(id);if(!p)return;
+  if(p.parentId===null&&p.spouseOf===null){alert("The starting person cannot be deleted. Edit the name instead.");return}
+  let ids=[p.id];
+  if(children(p.id).length||spouses(p.id).length){
+    const c=(prompt(`Delete ${p.name}?\n\nType ONLY to delete only this person and keep children.\nType BRANCH to delete this entire branch.\nType CANCEL to stop.`,"CANCEL")||"").trim().toUpperCase();
+    if(c==="CANCEL"||!c)return;
+    if(c==="BRANCH"){ids=[...descendants(p.id),p.id]}
+    else if(c==="ONLY"){
+      const oldChildren=children(p.id).map(x=>({...x}));
+      const removed=[p,...spouses(p.id)].map(x=>({...x}));
+      try{
+        if(shared){
+          const b=writeBatch(db);
+          oldChildren.forEach(ch=>b.update(doc(db,COLLECTION_NAME,ch.id),{parentId:p.parentId}));
+          removed.forEach(x=>b.delete(doc(db,COLLECTION_NAME,x.id))); await b.commit();
+        }else{
+          oldChildren.forEach(ch=>person(ch.id).parentId=p.parentId);
+          people=people.filter(x=>!removed.some(r=>r.id===x.id));saveLocalCache();render();
+        }
+        undoAction=async()=>{
+          await restorePeople(removed);
+          for(const ch of oldChildren) await patchPerson(ch.id,{parentId:ch.parentId});
+          setMsg(`Restored ${p.name}.`);undoAction=null;updateUndo()
+        };
+        updateUndo();setMsg(`${p.name} was deleted; children were kept.`);return;
+      }catch(e){handleError(e);return}
+    } else {alert("Nothing was deleted.");return}
+  } else if(!confirm(`Delete ${p.name}?`)) return;
+  const removed=people.filter(x=>ids.includes(x.id)).map(x=>({...x}));
+  try{
+    await removeIds(ids);
+    undoAction=async()=>{await restorePeople(removed);setMsg(`Restored ${p.name}.`);undoAction=null;updateUndo()};
+    updateUndo();setMsg(`${p.name}${ids.length>1?" and that branch":""} deleted.`);
+  }catch(e){handleError(e)}
+}
+async function movePerson(id){
+  const p=person(id);if(!p)return;
+  if(p.parentId===null&&p.spouseOf===null){alert("The starting person cannot be moved.");return}
+  const type=p.spouseOf!==null?"spouse":"child";
+  const name=prompt(type==="spouse"?`Attach ${p.name} as spouse of whom?\nEnter exact name:`:`Move ${p.name} under which parent?\nEnter exact name:`);
+  if(!name||!name.trim())return;
+  const m=people.filter(x=>x.id!==p.id&&x.name.toLowerCase()===name.trim().toLowerCase());
+  if(m.length!==1){alert(m.length?"More than one exact match was found. Temporarily make one name unique.":"No exact matching name was found.");return}
+  const t=m[0];if(type==="child"&&descendants(p.id).has(t.id)){alert("A person cannot be moved under their own descendant.");return}
+  const old={parentId:p.parentId,spouseOf:p.spouseOf};
+  const patch=type==="spouse"?{spouseOf:t.id,parentId:null}:{parentId:t.id,spouseOf:null};
+  try{
+    await patchPerson(p.id,patch);
+    undoAction=async()=>{await patchPerson(p.id,old);setMsg(`Moved ${p.name} back.`);undoAction=null;updateUndo()};
+    updateUndo();setMsg(`${p.name} was moved to ${t.name}.`);
+  }catch(e){handleError(e)}
+}
+
+function actionButtons(p,compact=false){
+  const box=document.createElement("div");box.className=compact?"nodeActions":"actions";
+  [[" + Child",()=>addPerson(p.id,"child"),""],["+ Spouse",()=>addPerson(p.id,"spouse"),""],["✎ Edit",()=>editPerson(p.id),""],["↔ Move",()=>movePerson(p.id),""],["🗑 Delete",()=>deletePerson(p.id),"danger"]].forEach(([txt,fn,cls])=>{
+    const b=document.createElement("button");b.textContent=txt.trim();if(cls)b.className=cls;b.addEventListener("click",fn);box.appendChild(b)
+  });return box
+}
+function listCard(p,rel=""){
+  const card=document.createElement("div");card.className="person"+(matches(p)?" match":"");
+  const row=document.createElement("div");row.className="row";const left=document.createElement("div");
+  const has=children(p.id).length||spouses(p.id).length;const n=document.createElement("button");n.className="nameBtn";
+  n.textContent=(has?(isExpanded(p.id)?"▾ ":"▸ "):"")+p.name;n.addEventListener("click",()=>{expanded.set(p.id,!isExpanded(p.id));render()});left.appendChild(n);
+  if(rel){const r=document.createElement("span");r.className="rel";r.textContent=rel;left.appendChild(r)}
+  row.append(left,actionButtons(p));card.appendChild(row);return card
+}
+function listBranch(p,depth=0){
+  const w=document.createElement("div");if(depth)w.className="branch";w.appendChild(listCard(p,depth?"":"Family starting point"));
+  if(isExpanded(p.id)){spouses(p.id).forEach(s=>{const q=document.createElement("div");q.className="branch";q.appendChild(listCard(s,`spouse of ${p.name}`));w.appendChild(q)});children(p.id).forEach(c=>w.appendChild(listBranch(c,depth+1)))}return w
+}
+function treeNode(p){
+  const li=document.createElement("li"),node=document.createElement("div");node.className="node"+(matches(p)?" match":"");
+  const couple=document.createElement("div");couple.className="couple";const has=children(p.id).length||spouses(p.id).length;
+  if(has){const t=document.createElement("button");t.className="toggle";t.textContent=isExpanded(p.id)?"▼":"▶";t.addEventListener("click",()=>{expanded.set(p.id,!isExpanded(p.id));render()});couple.appendChild(t)}
+  const n=document.createElement("span");n.className="nodeName";n.textContent=p.name;couple.appendChild(n);
+  spouses(p.id).forEach(s=>{const h=document.createElement("span");h.className="heart";h.textContent="♥";const sn=document.createElement("span");sn.className="nodeName";sn.textContent=s.name;couple.append(h,sn)});
+  node.append(couple,actionButtons(p,true));li.appendChild(node);
+  if(isExpanded(p.id)&&children(p.id).length){const ul=document.createElement("ul");children(p.id).forEach(c=>ul.appendChild(treeNode(c)));li.appendChild(ul)}return li
+}
+function revealMatches(){
+  const q=$("search").value.trim().toLowerCase();if(!q)return;
+  people.filter(p=>p.name.toLowerCase().includes(q)).forEach(p=>{let cur=p,guard=0;while(cur&&guard++<100){if(cur.parentId!==null){const par=person(cur.parentId);if(par){expanded.set(par.id,true);cur=par;continue}}if(cur.spouseOf!==null){const s=person(cur.spouseOf);if(s)expanded.set(s.id,true)}break}})
+}
+function render(){
+  revealMatches();updateStats();
+  people.forEach(p=>{if(!expanded.has(p.id))expanded.set(p.id,true)});
+  const roots=people.filter(p=>p.parentId===null&&p.spouseOf===null);
+  $("listView").innerHTML="";roots.forEach(r=>$("listView").appendChild(listBranch(r)));
+  $("diagram").innerHTML="";const ul=document.createElement("ul");roots.forEach(r=>ul.appendChild(treeNode(r)));$("diagram").appendChild(ul);updateUndo()
+}
+function switchView(v){
+  const tree=v==="tree";$("treeArea").classList.toggle("hidden",!tree);$("listView").classList.toggle("hidden",tree);$("treeTab").classList.toggle("active",tree);$("listTab").classList.toggle("active",!tree);if(tree)setTimeout(()=>centerTree(false),30)
+}
+function centerTree(smooth=true){const e=$("treeScroll");e.scrollTo({left:Math.max(0,(e.scrollWidth-e.clientWidth)/2),behavior:smooth?"smooth":"auto"})}
+function handleError(e){console.error(e);setMsg("A shared-saving error occurred. Check Firebase setup and Firestore rules.");setConnection("error","Shared connection error",e?.code||"")}
+
+async function startShared(){
+  if(!firebaseConfigured()){
+    people=localState().people.map(normalize);
+    $("setupBox").classList.add("show");
+    setConnection("local","Local-only mode","Firebase configuration is not connected yet.");
+    render();
+    return;
+  }
+
+  try{
+    const app=initializeApp(firebaseConfig);
+    const auth=getAuth(app);
+    db=getFirestore(app);
+
+    setConnection("online","Signing in securely…","Anonymous guest access");
+
+    await signInAnonymously(auth);
+
+    onAuthStateChanged(auth,user=>{
+      if(!user){
+        shared=false;
+        setConnection("error","Sign-in failed","Anonymous authentication is required.");
+        return;
+      }
+
+      shared=true;
+      setConnection("online","Connecting to shared tree…","Secure anonymous access");
+
+      onSnapshot(collection(db,COLLECTION_NAME),async snap=>{
+        people=snap.docs.map(d=>normalize(d.data()));
+
+        if(people.length===0){
+          await setDoc(
+            doc(db,COLLECTION_NAME,"1"),
+            {id:"1",name:"Verdie",parentId:null,spouseOf:null}
+          );
+          return;
+        }
+
+        saveLocalCache();
+        render();
+        setConnection("online","Shared tree connected","Changes update for everyone.");
+      },handleError);
+    });
+  }catch(e){
+    shared=false;
+    people=localState().people.map(normalize);
+    handleError(e);
+    render();
+  }
+}
+
+$("treeTab").addEventListener("click",()=>switchView("tree"));$("listTab").addEventListener("click",()=>switchView("list"));
+$("search").addEventListener("input",render);
+$("expandAll").addEventListener("click",()=>{people.forEach(p=>expanded.set(p.id,true));render()});
+$("collapseAll").addEventListener("click",()=>{people.forEach(p=>expanded.set(p.id,false));people.filter(p=>p.parentId===null&&p.spouseOf===null).forEach(p=>expanded.set(p.id,true));render()});
+$("undo").addEventListener("click",async()=>{if(undoAction){const a=undoAction;undoAction=null;updateUndo();try{await a()}catch(e){handleError(e)}}});
+$("left").addEventListener("click",()=>$("treeScroll").scrollTo({left:0,behavior:"smooth"}));$("center").addEventListener("click",()=>centerTree(true));$("right").addEventListener("click",()=>{const e=$("treeScroll");e.scrollTo({left:e.scrollWidth,behavior:"smooth"})});
+
+$("makeBackup").addEventListener("click",()=>{$("backup").value=JSON.stringify({people},null,2);setMsg("Backup text created.")});
+$("downloadBackup").addEventListener("click",()=>{
+  const text=JSON.stringify({people},null,2);$("backup").value=text;const blob=new Blob([text],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=u;a.download="verdie-family-tree-v4-backup.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);setMsg("Backup downloaded.")
+});
+$("restoreLocal").addEventListener("click",()=>{
+  try{const v=JSON.parse($("backup").value);if(!v||!Array.isArray(v.people))throw 0;localStorage.setItem(LOCAL_KEY,JSON.stringify({people:v.people,nextId:Date.now()}));setMsg("Backup restored to this device. Use Upload to Shared Tree if you want it online.");if(!shared){people=v.people.map(normalize);render()}}
+  catch(e){alert("That backup text is not valid.")}
+});
+$("uploadLocal").addEventListener("click",async()=>{
+  if(!shared){alert("Firebase must be connected before you can upload to the shared tree.");return}
+  const local=localState().people.map(normalize);
+  if(!local.length){alert("No saved local tree was found.");return}
+  if(!confirm(`Upload ${local.length} locally saved names to the SHARED tree?\n\nThis will replace the current shared tree. Only do this once, from the device that has your most complete tree.`))return;
+  try{
+    const snap=await getDocs(collection(db,COLLECTION_NAME)),batch=writeBatch(db);
+    snap.docs.forEach(d=>batch.delete(d.ref));local.forEach(p=>batch.set(doc(db,COLLECTION_NAME,p.id),p));await batch.commit();setMsg("Your existing family tree was uploaded to the shared tree.")
+  }catch(e){handleError(e)}
+});
+
+startShared();switchView("tree");
+</script>
+</body>
+</html>
